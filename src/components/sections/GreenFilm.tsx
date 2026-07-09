@@ -1,39 +1,51 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const MOBILE_QUERY = "(max-width: 900px)";
+
+function subscribeMobile(onChange: () => void) {
+  const mq = window.matchMedia(MOBILE_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 /**
- * GreenFilm - the scroll-scrubbed video finale.
+ * GreenFilm - the scroll-scrubbed video finale on desktop.
  *
- * Replaces the old BallReappears + Putt sections: one pinned video of the
- * ball landing on the green and rolling to the hole, scrubbed by scroll
- * (Apple-style). Currently wired to the temp asset
- * /videos/ball-sinking.mp4 - swap that file for the final render when
- * it's ready; no code changes needed.
- *
- * Keeps aria-label "The Putt" so the progress rail's End dot still works.
+ * Mobile browsers scrub video very unevenly (Safari and older Android
+ * especially), so on mobile we skip the scrub, the video's poster attribute
+ * shows a still frame, and the file is never fetched (preload="none").
+ * The section also collapses to a single screen instead of the 280vh scroll
+ * cushion the pinned scrub needs.
  */
 export function GreenFilm() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const taglineRef = useRef<HTMLDivElement | null>(null);
 
+  // SSR renders desktop safely; after hydration the media query flips to
+  // mobile if the viewport matches, without a hydration warning.
+  const isMobile = useSyncExternalStore(
+    subscribeMobile,
+    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => false,
+  );
+
   useEffect(() => {
     const section = sectionRef.current;
-    const video = videoRef.current;
     const tagline = taglineRef.current;
-    if (!section || !video) return;
+    if (!section) return;
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
     const ctx = gsap.context(() => {
-      // Tagline and menu settle in over the last stretch of the film
       if (tagline) {
         gsap.fromTo(
           tagline,
@@ -44,17 +56,20 @@ export function GreenFilm() {
             ease: "power2.out",
             scrollTrigger: {
               trigger: section,
-              start: "75% bottom",
-              end: "95% bottom",
+              start: isMobile ? "top 50%" : "75% bottom",
+              end: isMobile ? "top 20%" : "95% bottom",
               scrub: 0.5,
             },
           },
         );
       }
-      if (reduced) return;
+
+      if (isMobile || reduced) return;
+
+      const video = videoRef.current;
+      if (!video) return;
 
       let scrubTween: gsap.core.Tween | null = null;
-
       const buildScrub = () => {
         if (scrubTween || !video.duration) return;
         scrubTween = gsap.fromTo(
@@ -82,30 +97,31 @@ export function GreenFilm() {
     }, section);
 
     return () => ctx.revert();
-  }, []);
+  }, [isMobile]);
 
   return (
     <section
       ref={sectionRef}
-      className="relative w-full"
-      style={{
-        height: "280vh",
-        background: "var(--green-deep)",
-      }}
+      className="relative w-full greenfilm-section"
+      style={{ background: "var(--green-deep)" }}
       aria-label="The Putt"
     >
       <div
         className="sticky top-0 w-full overflow-hidden"
         style={{ height: "100vh" }}
       >
+        {/* Same video element on all sizes. On mobile preload="none" keeps
+            the 11MB clip off the wire and the poster attribute shows a
+            still frame; no scrub. */}
         <video
           ref={videoRef}
           className="absolute inset-0 h-full w-full"
           style={{ objectFit: "cover" }}
-          src="/videos/ball-sinking.mp4"
+          src="/videos/end-scroll.mp4"
+          poster="/videos/end-scroll-poster.jpg"
           muted
           playsInline
-          preload="auto"
+          preload={isMobile ? "none" : "auto"}
           aria-hidden
         />
 
@@ -144,6 +160,13 @@ export function GreenFilm() {
           </p>
         </div>
       </div>
+
+      <style>{`
+        .greenfilm-section { height: 280vh; }
+        @media (max-width: 900px) {
+          .greenfilm-section { height: 100vh; }
+        }
+      `}</style>
     </section>
   );
 }

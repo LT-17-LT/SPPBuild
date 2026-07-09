@@ -231,7 +231,7 @@ export function System() {
 
               {/* Image slot - real render if provided, CSS placeholder otherwise */}
               <div
-                className="relative"
+                className="relative system-card-image"
                 style={{
                   borderRadius: 12,
                   background: card.image
@@ -346,9 +346,17 @@ export function System() {
           }
           .system-card {
             width: 88vw !important;
-            height: min(52vh, 460px) !important;
+            /* Height flows with content so image + text each get room */
+            height: auto !important;
             grid-template-columns: 1fr !important;
-            grid-template-rows: 0.8fr 1fr !important;
+            grid-template-rows: auto auto !important;
+            gap: 1.25rem !important;
+          }
+          /* Portrait aspect on mobile - matches the source renders (1200x1490)
+             so the image shows fully instead of a landscape-cropped strip. */
+          .system-card-image {
+            aspect-ratio: 4 / 5 !important;
+            min-height: 0 !important;
           }
         }
       `}</style>
