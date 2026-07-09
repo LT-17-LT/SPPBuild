@@ -21,7 +21,7 @@ const SEGMENTS: Segment[] = [
   {
     eyebrow: "For Fitting Studios",
     title: "Separate movement problems from equipment problems.",
-    body: "Use before or after the fitting. The diagnostic tool your analysis is missing.",
+    body: "Every fitting starts with a swing you can trust. Use it before the session to steady the movement, or after to prove the fit.",
     bg: "radial-gradient(ellipse 70% 60% at 30% 40%, rgba(53, 85, 52, 0.35) 0%, transparent 65%), linear-gradient(160deg, #050d07 0%, #0a1f10 100%)",
   },
   {
@@ -168,6 +168,7 @@ export function WhoItsFor() {
         background: "var(--green-deep)",
         color: "var(--paper)",
       }}
+      id="for-you"
       aria-label="Who It's For"
     >
       {/* Layered chapter backgrounds - one per segment, cross-faded */}
@@ -282,10 +283,11 @@ export function WhoItsFor() {
                 maxWidth: "44ch",
               }}
             >
-              Book a demo, request pricing, or ask us anything.
+              Request pricing, license agreements, partnerships, or ask us
+              anything.
             </p>
             <a
-              href="mailto:hello@swingpathpro.com?subject=Swing%20Path%20Pro%20enquiry"
+              href="/contact"
               className="inline-flex items-center justify-center"
               style={{
                 marginTop: "2rem",
@@ -302,7 +304,7 @@ export function WhoItsFor() {
                 transition: "background 0.2s ease, transform 0.2s ease",
               }}
             >
-              Book a demo →
+              Enquire →
             </a>
           </div>
         </div>

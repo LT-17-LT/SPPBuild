@@ -60,6 +60,7 @@ export function Testimonials() {
         background: "var(--paper)",
         paddingTop: "var(--section-py)",
       }}
+      id="proof"
       aria-label="Testimonials"
     >
       {/* Section header (scrolls normally, above the stack) */}

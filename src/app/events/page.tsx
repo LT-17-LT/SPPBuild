@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { SiteHeader } from "@/components/sections/SiteHeader";
+import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { GalleryMasonry, type GalleryItem } from "@/components/ui/GalleryMasonry";
@@ -100,7 +100,7 @@ function ImageCredit() {
 export default function EventsPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
-      <SiteHeader />
+      <TopNav />
 
       {/* Page heading */}
       <section

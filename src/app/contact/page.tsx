@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/sections/SiteHeader";
+import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { ContactForm } from "@/components/ui/ContactForm";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
-      <SiteHeader />
+      <TopNav />
 
       <section
         className="mx-auto text-center"
@@ -55,8 +55,8 @@ export default function ContactPage() {
               maxWidth: "50ch",
             }}
           >
-            Book a demo, request pricing, or place a pre-order. Tell us a little
-            about you and we&rsquo;ll be in touch.
+            Request pricing, license agreements, partnerships, or ask us
+            anything, and we&rsquo;ll be in touch.
           </p>
         </Reveal>
       </section>

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { EndMenu } from "./EndMenu";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,13 +21,11 @@ export function GreenFilm() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const taglineRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
     const video = videoRef.current;
     const tagline = taglineRef.current;
-    const menu = menuRef.current;
     if (!section || !video) return;
 
     const reduced = window.matchMedia(
@@ -54,24 +51,6 @@ export function GreenFilm() {
           },
         );
       }
-      if (menu) {
-        gsap.fromTo(
-          menu,
-          { autoAlpha: 0, y: -16 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: section,
-              start: "75% bottom",
-              end: "95% bottom",
-              scrub: 0.5,
-            },
-          },
-        );
-      }
-
       if (reduced) return;
 
       let scrubTween: gsap.core.Tween | null = null;
@@ -139,24 +118,6 @@ export function GreenFilm() {
               "linear-gradient(180deg, rgba(9,20,11,0.25) 0%, transparent 30%, transparent 62%, rgba(9,20,11,0.55) 100%)",
           }}
         />
-
-        {/* End menu - sits mid-frame so it's on screen when the scroll
-            lands at the bottom of the site */}
-        <div
-          ref={menuRef}
-          className="absolute w-full"
-          style={{
-            top: "45%",
-            left: 0,
-            opacity: 0,
-            visibility: "hidden",
-          }}
-        >
-          {/* Inner wrapper keeps the -50% centring out of GSAP's transform */}
-          <div style={{ transform: "translateY(-50%)" }}>
-            <EndMenu />
-          </div>
-        </div>
 
         {/* Finale caption */}
         <div

@@ -2,26 +2,38 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/ui/Wordmark";
 
-const LINKS = [
-  { label: "System", selector: 'section[aria-label="The System"]' },
-  { label: "For You", selector: 'section[aria-label="Who It\'s For"]' },
-  { label: "Proof", selector: 'section[aria-label="Testimonials"]' },
+type NavItem =
+  | { label: "Home"; kind: "top" }
+  | { label: string; kind: "section"; sectionId: string }
+  | { label: string; kind: "page"; href: string };
+
+const NAV: NavItem[] = [
+  { label: "Home", kind: "top" },
+  { label: "System", kind: "section", sectionId: "system" },
+  { label: "For You", kind: "section", sectionId: "for-you" },
+  { label: "Proof", kind: "section", sectionId: "proof" },
+  { label: "Friends of SPP", kind: "page", href: "/friends" },
+  { label: "Seen in the Field", kind: "page", href: "/events" },
 ];
 
-function scrollToSection(selector: string) {
-  const el = document.querySelector<HTMLElement>(selector);
+function scrollToId(id: string) {
+  const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
- * TopNav - fixed top navigation. Transparent while at the top of the page,
- * opaque with a subtle blur after ~80px of scroll. Logo left, minimal
- * links right, gold "Enquire" button. Links smooth-scroll to sections;
- * Enquire opens the contact page.
+ * TopNav - fixed top navigation. Transparent while at the top of the page
+ * on the homepage; solid green-deep everywhere else and after ~80px of
+ * scroll. Section links smooth-scroll when on the homepage, and route to
+ * `/#id` when clicked from any sub-page (with a hash-scroll handler on the
+ * homepage that catches those on arrival).
  */
 export function TopNav() {
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const ticking = useRef(false);
@@ -40,6 +52,44 @@ export function TopNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Homepage: if the URL loaded with a hash (from a sub-page nav click),
+  // scroll to that section once the DOM is settled.
+  useEffect(() => {
+    if (!onHome) return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+    // Wait a beat for hero + pinned sections to lay out.
+    const t = window.setTimeout(() => scrollToId(hash), 200);
+    return () => window.clearTimeout(t);
+  }, [onHome]);
+
+  // Force the solid background on sub-pages regardless of scroll position -
+  // there's no hero to fade over.
+  const solid = !onHome || scrolled;
+
+  const handleNav = (item: NavItem, e: React.MouseEvent) => {
+    if (item.kind === "top") {
+      if (onHome) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      // else: let Next Link route to "/"
+      return;
+    }
+    if (item.kind === "section" && onHome) {
+      e.preventDefault();
+      scrollToId(item.sectionId);
+    }
+    // section from sub-page: let Link route to "/#id" (browser + our hash effect handle scroll)
+    // page: let Link route
+  };
+
+  const hrefFor = (item: NavItem): string => {
+    if (item.kind === "top") return "/";
+    if (item.kind === "section") return `/#${item.sectionId}`;
+    return item.href;
+  };
+
   return (
     <header
       className="fixed top-0 left-0 w-full"
@@ -47,13 +97,13 @@ export function TopNav() {
         zIndex: 100,
         transition:
           "background 0.35s ease, backdrop-filter 0.35s ease, border-color 0.35s ease, color 0.35s ease",
-        background: scrolled ? "rgba(9, 20, 11, 0.86)" : "transparent",
-        backdropFilter: scrolled ? "blur(14px) saturate(140%)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(14px) saturate(140%)" : "none",
-        borderBottom: scrolled
+        background: solid ? "rgba(9, 20, 11, 0.86)" : "transparent",
+        backdropFilter: solid ? "blur(14px) saturate(140%)" : "none",
+        WebkitBackdropFilter: solid ? "blur(14px) saturate(140%)" : "none",
+        borderBottom: solid
           ? "1px solid rgba(255, 255, 255, 0.08)"
           : "1px solid transparent",
-        boxShadow: scrolled ? "0 12px 40px -20px rgba(0,0,0,0.55)" : "none",
+        boxShadow: solid ? "0 12px 40px -20px rgba(0,0,0,0.55)" : "none",
       }}
     >
       <div
@@ -62,44 +112,48 @@ export function TopNav() {
           maxWidth: "min(1280px, 96vw)",
           padding: "clamp(0.9rem, 1.6vw, 1.25rem) 1.5rem",
           justifyContent: "space-between",
+          gap: "1rem",
         }}
       >
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        <Link
+          href="/"
+          onClick={(e) => {
+            if (onHome) {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
           className="inline-flex items-center"
-          style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
-          aria-label="Swing Path Pro - back to top"
+          style={{ color: "var(--paper)", textDecoration: "none" }}
+          aria-label="Swing Path Pro - home"
         >
           <Wordmark height={26} variant="paper" />
-        </button>
+        </Link>
 
         {/* Desktop links */}
         <nav
           className="topnav-desktop items-center"
-          style={{ gap: "clamp(1.25rem, 2vw, 2rem)" }}
+          style={{ gap: "clamp(1rem, 1.5vw, 1.75rem)" }}
         >
-          {LINKS.map((link) => (
-            <button
-              key={link.label}
-              type="button"
-              onClick={() => scrollToSection(link.selector)}
+          {NAV.map((item) => (
+            <Link
+              key={item.label}
+              href={hrefFor(item)}
+              onClick={(e) => handleNav(item, e)}
               className="topnav-link"
               style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
                 color: "var(--moss-lt)",
                 fontFamily: "var(--font-inter), system-ui, sans-serif",
                 fontWeight: 500,
-                fontSize: "0.85rem",
+                fontSize: "0.82rem",
                 letterSpacing: "0.02em",
+                textDecoration: "none",
                 transition: "color 0.2s ease",
-                padding: 0,
+                whiteSpace: "nowrap",
               }}
             >
-              {link.label}
-            </button>
+              {item.label}
+            </Link>
           ))}
           <Link
             href="/contact"
@@ -115,6 +169,7 @@ export function TopNav() {
               fontSize: "0.82rem",
               textDecoration: "none",
               transition: "background 0.2s ease",
+              whiteSpace: "nowrap",
             }}
           >
             Enquire
@@ -162,28 +217,24 @@ export function TopNav() {
               gap: "0.9rem",
             }}
           >
-            {LINKS.map((link) => (
-              <button
-                key={link.label}
-                type="button"
-                onClick={() => {
+            {NAV.map((item) => (
+              <Link
+                key={item.label}
+                href={hrefFor(item)}
+                onClick={(e) => {
+                  handleNav(item, e);
                   setMenuOpen(false);
-                  scrollToSection(link.selector);
                 }}
                 style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  textAlign: "left",
                   color: "var(--paper)",
+                  textDecoration: "none",
                   fontFamily: "var(--font-inter), system-ui, sans-serif",
                   fontWeight: 500,
                   fontSize: "1rem",
-                  padding: 0,
                 }}
               >
-                {link.label}
-              </button>
+                {item.label}
+              </Link>
             ))}
             <Link
               href="/contact"
@@ -212,7 +263,7 @@ export function TopNav() {
         .topnav-desktop { display: flex; }
         .topnav-mobile-toggle,
         .topnav-mobile-drawer { display: none; }
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) {
           .topnav-desktop { display: none; }
           .topnav-mobile-toggle { display: inline-flex; }
           .topnav-mobile-drawer { display: block; }

@@ -3,9 +3,13 @@
 import { useRef, useState } from "react";
 
 /**
- * VideoTile - a poster-framed clip that plays inline on click. Muted,
- * plays inline, loops. Premium framing (rounded, gold play glyph) rather
- * than a raw video control bar until the viewer chooses to play.
+ * VideoTile - a poster-framed clip. The video itself uses object-fit: contain
+ * so the whole frame is always visible (dark ground shows through any letter-
+ * or pillar-boxing rather than cropping the subject).
+ *
+ * - Click anywhere on the tile: play / pause
+ * - Speaker button (bottom-right): mute / unmute (starts muted so the video
+ *   is allowed to autoplay when the user first hits play)
  */
 export function VideoTile({
   src,
@@ -20,8 +24,9 @@ export function VideoTile({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
 
-  const toggle = () => {
+  const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
@@ -33,10 +38,26 @@ export function VideoTile({
     }
   };
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const v = videoRef.current;
+    if (!v) return;
+    const next = !muted;
+    v.muted = next;
+    setMuted(next);
+  };
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={togglePlay}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          togglePlay();
+        }
+      }}
       aria-label={playing ? `Pause: ${label}` : `Play: ${label}`}
       className="group relative block w-full overflow-hidden"
       style={{
@@ -52,19 +73,19 @@ export function VideoTile({
         ref={videoRef}
         src={src}
         poster={poster}
-        muted
+        muted={muted}
         loop
         playsInline
         preload="metadata"
         onEnded={() => setPlaying(false)}
         className="absolute inset-0 h-full w-full"
-        style={{ objectFit: "cover" }}
+        style={{ objectFit: "contain" }}
       />
 
       {/* Play glyph + label overlay - fades out while playing */}
       <span
         aria-hidden
-        className="absolute inset-0 flex flex-col items-center justify-center"
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{
           background:
             "linear-gradient(180deg, rgba(9,20,11,0.1) 0%, rgba(9,20,11,0.5) 100%)",
@@ -107,6 +128,69 @@ export function VideoTile({
           {label}
         </span>
       </span>
-    </button>
+
+      {/* Audio toggle - bottom-right corner, visible while playing */}
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={muted ? "Unmute video" : "Mute video"}
+        className="absolute"
+        style={{
+          right: "0.75rem",
+          bottom: "0.75rem",
+          width: 36,
+          height: 36,
+          borderRadius: 999,
+          background: "rgba(9, 20, 11, 0.55)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          color: "var(--paper)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          cursor: "pointer",
+          opacity: playing ? 1 : 0.65,
+          transition: "opacity 0.2s ease",
+          zIndex: 3,
+        }}
+      >
+        {muted ? <SpeakerMutedIcon /> : <SpeakerIcon />}
+      </button>
+    </div>
+  );
+}
+
+function SpeakerIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 9v6h4l5 4V5L8 9H4z"
+        fill="currentColor"
+      />
+      <path
+        d="M16.5 8.5c1 1 1.5 2.2 1.5 3.5s-.5 2.5-1.5 3.5M19 6c1.7 1.7 2.5 3.8 2.5 6s-.8 4.3-2.5 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SpeakerMutedIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 9v6h4l5 4V5L8 9H4z"
+        fill="currentColor"
+      />
+      <path
+        d="M17 9l5 6M22 9l-5 6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }

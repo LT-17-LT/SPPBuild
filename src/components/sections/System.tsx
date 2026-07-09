@@ -116,6 +116,7 @@ export function System() {
         background: "var(--paper)",
         height: "100vh",
       }}
+      id="system"
       aria-label="The System"
     >
       {/* Header - fixed left column while the stack builds */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -9,37 +10,30 @@ gsap.registerPlugin(ScrollTrigger);
 const WORDS = ["LET'S", "GET", "THAT", "PERFECT", "SWING", "TOGETHER"] as const;
 
 /**
- * Word cue times (in seconds of hero-swing.mp4) - each pair is
- * [visibleFrom, visibleUntil]. The pinned scroll covers video 0-8s
- * (SCRUB_END); TOGETHER stays visible through the tail.
- *
- * The two "perpendicular" moments in the swing land at t=2 and t=4,
- * which is where THAT and PERFECT sit through their holds.
+ * Word cue positions along the pinned scroll (progress 0 -> 1). These were
+ * originally tuned against the scrubbed hero swing video; they read well as
+ * a distribution even without the video, so they'll drop back into the same
+ * timeline when the video returns.
  */
-const WORD_TIMES: Array<[number, number]> = [
-  [0.0, 1.0], // LET'S
-  [1.0, 2.0], // GET
-  [2.0, 4.0], // THAT
-  [4.0, 5.8], // PERFECT
-  [5.8, 6.5], // SWING
-  [6.5, 999], // TOGETHER (persists past pin end)
+const WORD_PROGRESS: Array<[number, number]> = [
+  [0.0, 0.125], // LET'S
+  [0.125, 0.25], // GET
+  [0.25, 0.5], // THAT
+  [0.5, 0.725], // PERFECT
+  [0.725, 0.8125], // SWING
+  [0.8125, 999], // TOGETHER
 ];
-
-/** Seconds of video mapped to the pinned scroll (0 -> SCRUB_END). Tail 8-9s
- * plays at normal speed as the section unpins. */
-const SCRUB_END = 8;
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const imageRef = useRef<HTMLDivElement | null>(null);
   const wordRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const subtitleRef = useRef<HTMLDivElement | null>(null);
   const scrollHintRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
-    const video = videoRef.current;
-    if (!section || !video) return;
+    if (!section) return;
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -66,84 +60,74 @@ export function Hero() {
         gsap.set(subtitleRef.current, { opacity: 0, y: 8 });
       }
 
-      const buildTimeline = () => {
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.4,
-            invalidateOnRefresh: true,
-            onLeave: () => {
-              // Play the 8s -> 9s tail at natural speed as the user
-              // continues into the Problem section.
-              video.play().catch(() => {});
-            },
-            onEnterBack: () => {
-              video.pause();
-            },
-          },
-        });
-
-        // Scrub video: 0 -> SCRUB_END across the pinned section
-        tl.fromTo(
-          video,
-          { currentTime: 0 },
-          { currentTime: SCRUB_END, ease: "none", duration: 1 },
-          0,
-        );
-
-        // Word cues - convert video timestamps to timeline progress (0-1)
-        const fade = 0.045;
-        WORDS.forEach((_, i) => {
-          const el = wordRefs.current[i];
-          if (!el) return;
-          const [tIn, tOut] = WORD_TIMES[i];
-          const pIn = tIn / SCRUB_END;
-          const pOut = Math.min(tOut, SCRUB_END) / SCRUB_END;
-
-          tl.to(
-            el,
-            { opacity: 1, y: 0, duration: fade, ease: "power2.out" },
-            pIn,
-          );
-          if (tOut <= SCRUB_END) {
-            tl.to(
-              el,
-              { opacity: 0, y: -10, duration: fade, ease: "power2.in" },
-              Math.max(pIn + fade, pOut - fade),
-            );
-          }
-        });
-
-        // Subtitle: fades in during the last stretch, alongside TOGETHER
-        if (subtitleRef.current) {
-          tl.to(
-            subtitleRef.current,
-            { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" },
-            0.82,
-          );
-        }
-
-        // Scroll hint fades out almost immediately
-        if (scrollHintRef.current) {
-          gsap.to(scrollHintRef.current, {
-            opacity: 0,
+      // Parallax zoom: 1 -> 1.10 across the whole pinned scroll
+      if (imageRef.current) {
+        gsap.fromTo(
+          imageRef.current,
+          { scale: 1 },
+          {
+            scale: 1.1,
             ease: "none",
             scrollTrigger: {
               trigger: section,
               start: "top top",
-              end: "5% top",
-              scrub: true,
+              end: "bottom bottom",
+              scrub: 0.4,
             },
-          });
-        }
-      };
+          },
+        );
+      }
 
-      if (video.readyState >= 1) {
-        buildTimeline();
-      } else {
-        video.addEventListener("loadedmetadata", buildTimeline, { once: true });
+      // Word cues + subtitle - single scrubbed timeline
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.4,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      const fade = 0.045;
+      WORDS.forEach((_, i) => {
+        const el = wordRefs.current[i];
+        if (!el) return;
+        const [pIn, pOut] = WORD_PROGRESS[i];
+        tl.to(
+          el,
+          { opacity: 1, y: 0, duration: fade, ease: "power2.out" },
+          pIn,
+        );
+        if (pOut <= 1) {
+          tl.to(
+            el,
+            { opacity: 0, y: -10, duration: fade, ease: "power2.in" },
+            Math.max(pIn + fade, pOut - fade),
+          );
+        }
+      });
+
+      if (subtitleRef.current) {
+        tl.to(
+          subtitleRef.current,
+          { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" },
+          0.82,
+        );
+      }
+
+      // Scroll hint fades out almost immediately
+      if (scrollHintRef.current) {
+        gsap.to(scrollHintRef.current, {
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: "5% top",
+            scrub: true,
+          },
+        });
       }
     }, section);
 
@@ -158,23 +142,27 @@ export function Hero() {
       aria-label="Swing Path Pro - Hero"
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Fallback background if the video is slow to appear */}
+        {/* Fallback background if the image is slow to appear */}
         <div className="absolute inset-0 hero-bg" aria-hidden />
 
-        {/* Scroll-scrubbed hero swing */}
-        <video
-          ref={videoRef}
-          src="/videos/hero-swing.mp4"
-          poster="/videos/hero-swing-poster.jpg"
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full"
-          style={{ objectFit: "cover" }}
+        {/* Landing image - full bleed, zooms 1 -> 1.10 through the scroll */}
+        <div
+          ref={imageRef}
+          className="absolute inset-0"
+          style={{ willChange: "transform" }}
           aria-hidden
-        />
+        >
+          <Image
+            src="/images/hero-landing.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
 
-        {/* Word sequence - bottom-left, replaced in place over the swing */}
+        {/* Word sequence - bottom-left */}
         <div
           className="absolute"
           style={{

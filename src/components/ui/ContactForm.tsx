@@ -172,7 +172,7 @@ export function ContactForm() {
         <Field label="Company name" htmlFor="company">
           <input id="company" name="company" className="spp-input" />
         </Field>
-        <Field label="VAT ID" htmlFor="vat">
+        <Field label="Vat/ID" htmlFor="vat">
           <input id="vat" name="vat" className="spp-input" />
         </Field>
         <Field label="Country/Region" htmlFor="country">

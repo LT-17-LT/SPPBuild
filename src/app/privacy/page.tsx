@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/sections/SiteHeader";
+import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -41,7 +41,7 @@ const SECTIONS: Section[] = [
 export default function PrivacyPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
-      <SiteHeader />
+      <TopNav />
 
       <section
         className="mx-auto"

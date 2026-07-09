@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { SiteHeader } from "@/components/sections/SiteHeader";
+import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { VideoTile } from "@/components/ui/VideoTile";
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function FriendsPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
-      <SiteHeader />
+      <TopNav />
 
       {/* Page heading */}
       <section
@@ -247,13 +247,11 @@ export default function FriendsPage() {
               src="/images/friends/coach-in-motion.mp4"
               poster="/images/friends/coach-in-motion-poster.jpg"
               label="Coach in motion"
-              aspect="16 / 9"
             />
             <VideoTile
               src="/images/friends/coach-on-apparatus.mp4"
               poster="/images/friends/coach-on-apparatus-poster.jpg"
               label="On the apparatus"
-              aspect="16 / 9"
             />
           </div>
         </Reveal>

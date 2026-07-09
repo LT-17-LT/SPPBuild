@@ -6,7 +6,7 @@ import { System } from "@/components/sections/System";
 import { WhoItsFor } from "@/components/sections/WhoItsFor";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { GreenFilm } from "@/components/sections/GreenFilm";
-import { FooterBar } from "@/components/sections/FooterBar";
+import { SiteFooter } from "@/components/sections/SiteFooter";
 
 export default function Home() {
   return (
@@ -18,9 +18,8 @@ export default function Home() {
       <System />
       <WhoItsFor />
       <Testimonials />
-      {/* GreenFilm hosts the EndMenu overlay inside its sticky viewport */}
       <GreenFilm />
-      <FooterBar />
+      <SiteFooter />
     </main>
   );
 }
