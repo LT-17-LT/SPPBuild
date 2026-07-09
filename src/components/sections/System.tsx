@@ -358,6 +358,12 @@ export function System() {
             aspect-ratio: 4 / 5 !important;
             min-height: 0 !important;
           }
+          /* The header body paragraph collides with the stacked cards on a
+             narrow screen. Hide it on mobile - the eyebrow + title carry
+             the intro on their own. */
+          .system-header p {
+            display: none !important;
+          }
         }
       `}</style>
     </section>
