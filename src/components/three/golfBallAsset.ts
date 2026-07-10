@@ -9,36 +9,35 @@ export const GOLF_BALL_URL = "/models/GolfBall.glb";
 /** Radius of the ball geometry inside GolfBall.glb (modelled in metres). */
 export const GLB_BALL_RADIUS = 0.021;
 
+export type GolfBallPart = {
+  geometry: THREE.BufferGeometry;
+  material: THREE.Material;
+};
+
 /**
- * Extracts the shared geometry + material from GolfBall.glb.
- * Every ball on the site renders from this single geometry so the GPU
- * uploads the 10k-vert dimple mesh exactly once.
+ * Extracts every mesh part from GolfBall.glb (a single dimpled sphere).
+ * Parts share the same geometry/material across every instance in the
+ * scene so the GPU uploads them once.
  */
 export function useGolfBallAsset() {
   const { scene } = useGLTF(GOLF_BALL_URL);
 
   return useMemo(() => {
-    const found: {
-      geometry: THREE.BufferGeometry | null;
-      material: THREE.Material | null;
-    } = { geometry: null, material: null };
+    const parts: GolfBallPart[] = [];
 
     scene.traverse((child) => {
-      if (!found.geometry && child instanceof THREE.Mesh) {
-        found.geometry = child.geometry;
-        found.material = child.material as THREE.Material;
+      if (child instanceof THREE.Mesh) {
+        const material = child.material as THREE.Material;
+        if (material instanceof THREE.MeshStandardMaterial) {
+          material.roughness = 0.55;
+          material.metalness = 0.0;
+          material.color = new THREE.Color("#d9d6ce");
+        }
+        parts.push({ geometry: child.geometry, material });
       }
     });
 
-    if (found.material instanceof THREE.MeshStandardMaterial) {
-      // Cast-urethane look: warm white, soft sheen. Just a touch below the
-      // original so the spheres shade against the paper background.
-      found.material.roughness = 0.55;
-      found.material.metalness = 0.0;
-      found.material.color = new THREE.Color("#d9d6ce");
-    }
-
-    return found;
+    return { parts };
   }, [scene]);
 }
 

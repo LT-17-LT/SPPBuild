@@ -3,10 +3,21 @@ import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 
+import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, canonical, ldJson } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  title: "Privacy - Swing Path Pro",
+  title: "Privacy Policy",
   description:
-    "How Swing Path Pro collects, uses and protects your personal information.",
+    "How Swing Path Pro collects, uses and protects your personal information, in line with the Protection of Personal Information Act (POPIA) in South Africa.",
+  alternates: { canonical: canonical("/privacy") },
+  robots: { index: true, follow: true },
+  openGraph: {
+    url: canonical("/privacy"),
+    title: "Privacy Policy - Swing Path Pro",
+    description:
+      "How Swing Path Pro collects, uses and protects your personal information.",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 type Section = { heading: string; body: React.ReactNode };
@@ -41,6 +52,14 @@ const SECTIONS: Section[] = [
 export default function PrivacyPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: ldJson(
+            breadcrumbJsonLd([{ name: "Privacy", path: "/privacy" }]),
+          ),
+        }}
+      />
       <TopNav />
 
       <section

@@ -5,15 +5,33 @@ import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { VideoTile } from "@/components/ui/VideoTile";
 
+import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, canonical, ldJson } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  title: "Friends of Swing Path Pro",
+  title: "Friends of SPP - Partners & Coaches",
   description:
-    "The people and partners behind Swing Path Pro - Ernie Els Charities South Africa and the coaches who put the system to work.",
+    "The partners and people who've stood beside Swing Path Pro, including Ernie Els Charities South Africa and professional golfer Nico van Rensburg.",
+  alternates: { canonical: canonical("/friends") },
+  openGraph: {
+    url: canonical("/friends"),
+    title: "Friends of Swing Path Pro",
+    description:
+      "The partners and people who stand beside Swing Path Pro - Ernie Els Charities South Africa and pro golfer Nico van Rensburg.",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default function FriendsPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: ldJson(
+            breadcrumbJsonLd([{ name: "Friends of SPP", path: "/friends" }]),
+          ),
+        }}
+      />
       <TopNav />
 
       {/* Page heading */}

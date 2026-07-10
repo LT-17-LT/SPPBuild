@@ -137,7 +137,7 @@ export function Testimonials() {
               {/* Media panel - photo, or a living video portrait */}
               {(q.image || q.video) && (
                 <div
-                  className="testimonial-photo relative"
+                  className={`testimonial-photo relative ${q.video ? "is-video" : "is-image"}`}
                   style={{ minHeight: "100%", background: "var(--green-deep)" }}
                 >
                   {q.video && q.poster ? (
@@ -248,8 +248,16 @@ export function Testimonials() {
             grid-template-columns: 1fr !important;
           }
           .testimonial-photo {
-            aspect-ratio: 4 / 3;
             min-height: auto !important;
+          }
+          /* Photos are 1000x1500 (2:3) - match that ratio exactly so
+             object-fit: cover has zero crop and shows the actual photo. */
+          .testimonial-photo.is-image {
+            aspect-ratio: 2 / 3;
+          }
+          /* Kalvin's clip is square - a 3:4 frame centers it cleanly. */
+          .testimonial-photo.is-video {
+            aspect-ratio: 3 / 4;
           }
         }
       `}</style>

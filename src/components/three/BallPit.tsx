@@ -103,7 +103,7 @@ function FieldBall({
   spec: FieldSpec;
   paused: boolean;
 }) {
-  const { geometry, material } = useGolfBallAsset();
+  const { parts } = useGolfBallAsset();
   const { viewport } = useThree();
   const body = useRef<RapierRigidBody>(null);
 
@@ -138,8 +138,9 @@ function FieldBall({
     }
   });
 
-  if (!geometry || !material) return null;
+  if (parts.length === 0) return null;
 
+  const scale = radius / GLB_BALL_RADIUS;
   return (
     <RigidBody
       ref={body}
@@ -152,11 +153,11 @@ function FieldBall({
       friction={0.4}
     >
       <BallCollider args={[radius]} />
-      <mesh
-        geometry={geometry}
-        material={material}
-        scale={radius / GLB_BALL_RADIUS}
-      />
+      <group scale={scale}>
+        {parts.map((p, i) => (
+          <mesh key={i} geometry={p.geometry} material={p.material} />
+        ))}
+      </group>
     </RigidBody>
   );
 }
@@ -168,10 +169,10 @@ function HeroBall({
   pointerRef: React.RefObject<PointerState>;
   paused: boolean;
 }) {
-  const { geometry, material } = useGolfBallAsset();
+  const { parts } = useGolfBallAsset();
   const { viewport } = useThree();
   const body = useRef<RapierRigidBody>(null);
-  const mesh = useRef<THREE.Mesh>(null);
+  const meshGroup = useRef<THREE.Group>(null);
   // Smoothed position; seeded from the body's spawn point on first frame.
   const pos = useRef<THREE.Vector3 | null>(null);
   const spinAxis = useMemo(() => new THREE.Vector3(), []);
@@ -197,21 +198,22 @@ function HeroBall({
     const nx = cur.x + (tx - cur.x) * alpha;
     const ny = cur.y + (ty - cur.y) * alpha;
 
-    // Visual roll: spin the mesh about the axis perpendicular to travel.
+    // Visual roll: spin the group about the axis perpendicular to travel.
     const dx = nx - cur.x;
     const dy = ny - cur.y;
     const dist = Math.hypot(dx, dy);
-    if (mesh.current && dist > 1e-5) {
+    if (meshGroup.current && dist > 1e-5) {
       spinAxis.set(-dy / dist, dx / dist, 0);
-      mesh.current.rotateOnWorldAxis(spinAxis, -dist / radius);
+      meshGroup.current.rotateOnWorldAxis(spinAxis, -dist / radius);
     }
 
     cur.set(nx, ny, 0);
     rb.setNextKinematicTranslation({ x: nx, y: ny, z: 0 });
   });
 
-  if (!geometry || !material) return null;
+  if (parts.length === 0) return null;
 
+  const scale = radius / GLB_BALL_RADIUS;
   return (
     <RigidBody
       ref={body}
@@ -220,12 +222,11 @@ function HeroBall({
       position={[0, viewport.height * 1.2, 0]} // enters from above
     >
       <BallCollider args={[radius]} />
-      <mesh
-        ref={mesh}
-        geometry={geometry}
-        material={material}
-        scale={radius / GLB_BALL_RADIUS}
-      />
+      <group ref={meshGroup} scale={scale}>
+        {parts.map((p, i) => (
+          <mesh key={i} geometry={p.geometry} material={p.material} />
+        ))}
+      </group>
     </RigidBody>
   );
 }
@@ -277,8 +278,8 @@ export function BallPit({ pointerRef, active, reduced }: BallPitProps) {
       {/* Soft overhead ambient + a faint lower-left fill. The upper key
           light (the "top-left" highlight, previously at [5, 7, 3]) is turned
           off per direction - restore it if the shading goes too flat. */}
-      <hemisphereLight args={["#fdfcf8", "#6f6a5c", 0.0125]} />
-      <directionalLight position={[-8, -4, 2]} intensity={0.0057} />
+      <hemisphereLight args={["#fdfcf8", "#6f6a5c", 3.2]} />
+      <directionalLight position={[-8, -4, 2]} intensity={1.76} />
       <Suspense fallback={null}>
         <Scene pointerRef={pointerRef} paused={paused} />
       </Suspense>

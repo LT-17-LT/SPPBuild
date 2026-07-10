@@ -5,10 +5,27 @@ import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { GalleryMasonry, type GalleryItem } from "@/components/ui/GalleryMasonry";
 
+import { breadcrumbJsonLd, canonical, ldJson } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  title: "Seen in the Field - Swing Path Pro",
+  title: "Seen in the Field - Events & Photos",
   description:
-    "Places the Swing Path Pro has been seen - Els for Autism Foundation golf days at Ebotse Links and Silver Lakes.",
+    "Places the Swing Path Pro has been seen - Els for Autism Foundation golf days at Ebotse Links and Silver Lakes. A growing record from the field.",
+  alternates: { canonical: canonical("/events") },
+  openGraph: {
+    url: canonical("/events"),
+    title: "Seen in the Field - Swing Path Pro",
+    description:
+      "Places the Swing Path Pro has been seen. Els for Autism Foundation golf days at Ebotse Links and Silver Lakes.",
+    images: [
+      {
+        url: "/images/events/ebotse/group-panorama.jpg",
+        width: 2000,
+        height: 1333,
+        alt: "Ebotse Links Els for Autism golf day, 28 August 2025",
+      },
+    ],
+  },
 };
 
 const EBOTSE_GALLERY: GalleryItem[] = [
@@ -100,6 +117,14 @@ function ImageCredit() {
 export default function EventsPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: ldJson(
+            breadcrumbJsonLd([{ name: "Seen in the Field", path: "/events" }]),
+          ),
+        }}
+      />
       <TopNav />
 
       {/* Page heading */}

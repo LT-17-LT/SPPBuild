@@ -3,15 +3,32 @@ import { TopNav } from "@/components/sections/TopNav";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 
+import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, canonical, ldJson, PATENT_NUMBER } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  title: "Patents - Swing Path Pro",
-  description:
-    "Swing Path Pro is protected intellectual property. Patent #1408632.",
+  title: `Patents (#${PATENT_NUMBER})`,
+  description: `The Swing Path Pro training apparatus, mechanism and design are registered intellectual property under Patent #${PATENT_NUMBER}.`,
+  alternates: { canonical: canonical("/patents") },
+  openGraph: {
+    url: canonical("/patents"),
+    title: `Patents - Swing Path Pro (#${PATENT_NUMBER})`,
+    description:
+      "Swing Path Pro is protected intellectual property. Registered under Patent #1408632.",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default function PatentsPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: ldJson(
+            breadcrumbJsonLd([{ name: "Patents", path: "/patents" }]),
+          ),
+        }}
+      />
       <TopNav />
 
       <section

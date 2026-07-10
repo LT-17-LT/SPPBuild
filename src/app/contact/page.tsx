@@ -4,15 +4,33 @@ import { SiteFooter } from "@/components/sections/SiteFooter";
 import { Reveal } from "@/components/ui/Reveal";
 import { ContactForm } from "@/components/ui/ContactForm";
 
+import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, canonical, ldJson } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  title: "Contact - Swing Path Pro",
+  title: "Contact - Pricing, Licensing & Partnerships",
   description:
-    "Enquire about Swing Path Pro - general enquiries and pre-orders. Made in South Africa for the game.",
+    "Request Swing Path Pro pricing, license agreements, partnerships, or send us a question. Made in South Africa for the game.",
+  alternates: { canonical: canonical("/contact") },
+  openGraph: {
+    url: canonical("/contact"),
+    title: "Contact Swing Path Pro",
+    description:
+      "Request pricing, license agreements, partnerships, or ask us anything.",
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default function ContactPage() {
   return (
     <main className="relative w-full" style={{ background: "var(--paper)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: ldJson(
+            breadcrumbJsonLd([{ name: "Contact", path: "/contact" }]),
+          ),
+        }}
+      />
       <TopNav />
 
       <section
