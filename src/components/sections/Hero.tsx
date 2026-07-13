@@ -10,18 +10,20 @@ gsap.registerPlugin(ScrollTrigger);
 const WORDS = ["LET'S", "GET", "THAT", "PERFECT", "SWING", "TOGETHER"] as const;
 
 /**
- * Word cue positions along the pinned scroll (progress 0 -> 1). These were
- * originally tuned against the scrubbed hero swing video; they read well as
- * a distribution even without the video, so they'll drop back into the same
- * timeline when the video returns.
+ * Word cue positions along the pinned scroll (progress 0 -> 1), in beats.
+ * LET'S/GET/THAT = 1 beat each, PERFECT/SWING/TOGETHER = 2 beats each (9
+ * beats total), so THAT no longer lingers and SWING gets real dwell time
+ * instead of flashing past. TOGETHER's 2 beats land as the final segment,
+ * holding until the section finishes scrolling away.
  */
+const BEAT = 1 / 9;
 const WORD_PROGRESS: Array<[number, number]> = [
-  [0.0, 0.125], // LET'S
-  [0.125, 0.25], // GET
-  [0.25, 0.5], // THAT
-  [0.5, 0.725], // PERFECT
-  [0.725, 0.8125], // SWING
-  [0.8125, 999], // TOGETHER
+  [0 * BEAT, 1 * BEAT], // LET'S - 1 beat
+  [1 * BEAT, 2 * BEAT], // GET - 1 beat
+  [2 * BEAT, 3 * BEAT], // THAT - 1 beat
+  [3 * BEAT, 5 * BEAT], // PERFECT - 2 beats
+  [5 * BEAT, 7 * BEAT], // SWING - 2 beats
+  [7 * BEAT, 999], // TOGETHER - 2 beats, holds to end
 ];
 
 export function Hero() {
@@ -112,7 +114,7 @@ export function Hero() {
         tl.to(
           subtitleRef.current,
           { opacity: 1, y: 0, duration: 0.12, ease: "power2.out" },
-          0.82,
+          7 * BEAT + 0.01,
         );
       }
 
