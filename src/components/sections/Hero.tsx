@@ -190,6 +190,7 @@ export function Hero() {
                   color:
                     word === "TOGETHER" ? "var(--gold)" : "var(--white)",
                   whiteSpace: "nowrap",
+                  opacity: 0,
                   willChange: "transform, opacity",
                 }}
               >
@@ -220,6 +221,7 @@ export function Hero() {
               color: "var(--gold)",
               fontSize: "1.1rem",
               maxWidth: "34ch",
+              opacity: 0,
               willChange: "transform, opacity",
             }}
           >
