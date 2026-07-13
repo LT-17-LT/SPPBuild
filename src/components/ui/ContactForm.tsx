@@ -19,45 +19,115 @@ const COUNTRIES = [
 
 /**
  * ContactForm - the enquiry form. Mirrors the fields on the existing site.
- * With no mail backend wired yet, submitting composes a pre-filled email to
- * CONTACT_EMAIL via the visitor's mail client (an honest interim). Swap the
- * submit handler for a POST to a form service (Formspree/Resend/etc.) when
- * one is set up - the markup won't need to change.
+ * Submits to /api/contact, which sends the enquiry via Resend. Only shows
+ * the success state once the server confirms delivery.
  */
 export function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const data = new FormData(form);
     const get = (k: string) => (data.get(k) as string) || "";
 
-    const lines = [
-      `First name: ${get("firstName")}`,
-      `Last name: ${get("lastName")}`,
-      `Email: ${get("email")}`,
-      `Phone: ${get("phone")}`,
-      `Enquiry type: ${get("enquiryType")}`,
-      "",
-      "Enquiry:",
-      get("enquiry"),
-      "",
-      `Company: ${get("company")}`,
-      `VAT ID: ${get("vat")}`,
-      `Country/Region: ${get("country")}`,
-      `Address: ${get("address")}`,
-      `City: ${get("city")}`,
-      `Zip / Postal code: ${get("zip")}`,
-    ];
+    const payload = {
+      firstName: get("firstName"),
+      lastName: get("lastName"),
+      email: get("email"),
+      phone: get("phone"),
+      enquiryType: get("enquiryType"),
+      enquiry: get("enquiry"),
+      company: get("company"),
+      vat: get("vat"),
+      country: get("country"),
+      address: get("address"),
+      city: get("city"),
+      zip: get("zip"),
+    };
 
-    const subject = `Swing Path Pro enquiry - ${get("enquiryType") || "General"}`;
-    const href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(lines.join("\n"))}`;
+    setSubmitting(true);
+    setError(false);
 
-    window.location.href = href;
-    setSent(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Request failed");
+
+      setSent(true);
+      form.reset();
+    } catch {
+      setError(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (error) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "clamp(2rem, 5vw, 3.5rem) 0",
+        }}
+      >
+        <h2
+          className="font-display"
+          style={{
+            color: "var(--ink)",
+            fontWeight: 400,
+            fontSize: "clamp(1.6rem, 3vw, 2.2rem)",
+            letterSpacing: "-0.02em",
+            margin: 0,
+          }}
+        >
+          Something went wrong.
+        </h2>
+        <p
+          style={{
+            color: "var(--moss)",
+            fontSize: "1rem",
+            lineHeight: 1.65,
+            fontWeight: 300,
+            margin: "1rem auto 0",
+            maxWidth: "44ch",
+          }}
+        >
+          We couldn&rsquo;t send your enquiry. Please email us directly at{" "}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            style={{ color: "var(--green)", fontWeight: 500 }}
+          >
+            {CONTACT_EMAIL}
+          </a>{" "}
+          or{" "}
+          <button
+            type="button"
+            onClick={() => setError(false)}
+            style={{
+              color: "var(--green)",
+              fontWeight: 500,
+              background: "none",
+              border: "none",
+              padding: 0,
+              textDecoration: "underline",
+              cursor: "pointer",
+              font: "inherit",
+            }}
+          >
+            try again
+          </button>
+          .
+        </p>
+      </div>
+    );
+  }
 
   if (sent) {
     return (
@@ -89,8 +159,8 @@ export function ContactForm() {
             maxWidth: "44ch",
           }}
         >
-          Your email client should have opened with your enquiry ready to send.
-          If it didn&rsquo;t, write to us directly at{" "}
+          We&rsquo;ve received your enquiry and will be in touch soon. If
+          it&rsquo;s urgent, you can also reach us directly at{" "}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             style={{ color: "var(--green)", fontWeight: 500 }}
@@ -198,8 +268,13 @@ export function ContactForm() {
         </Field>
       </div>
 
-      <button type="submit" className="spp-submit" style={{ marginTop: "2.5rem" }}>
-        Submit
+      <button
+        type="submit"
+        className="spp-submit"
+        style={{ marginTop: "2.5rem" }}
+        disabled={submitting}
+      >
+        {submitting ? "Sending..." : "Submit"}
       </button>
 
       <style>{`
