@@ -3,9 +3,7 @@ import { Resend } from "resend";
 
 const CONTACT_EMAIL = "hello@swingpathpro.com";
 
-/** Resend's shared sending domain - works with no DNS setup, good enough
- * until swingpathpro.com is verified in Resend for a branded from-address. */
-const FROM_ADDRESS = "Swing Path Pro <onboarding@resend.dev>";
+const FROM_ADDRESS = "Swing Path Pro <hello@swingpathpro.com>";
 
 type ContactPayload = {
   firstName: string;
