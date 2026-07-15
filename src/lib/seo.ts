@@ -96,6 +96,17 @@ export function productJsonLd() {
     countryOfOrigin: "ZA",
     // Patent-protected, register the identifier so Google can associate it
     identifier: `Patent #${PATENT_NUMBER}`,
+    // Google requires one of offers/review/aggregateRating on Product for
+    // rich-result eligibility. South African retail price, pre-order via
+    // the contact page (4 week lead time).
+    offers: {
+      "@type": "Offer",
+      price: "39000",
+      priceCurrency: "ZAR",
+      availability: "https://schema.org/PreOrder",
+      url: canonical("/contact"),
+      seller: { "@id": `${SITE_URL}#organization` },
+    },
   };
 }
 
