@@ -28,6 +28,7 @@ export function Problem() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const pointerRef = useRef<PointerState>({ x: 0, y: 0, inside: false });
   const [active, setActive] = useState(false);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
   const reduced = useSyncExternalStore(
     subscribeReducedMotion,
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -40,7 +41,10 @@ export function Problem() {
 
     // Only run physics + render loop while the section is on screen.
     const observer = new IntersectionObserver(
-      ([entry]) => setActive(entry.isIntersecting),
+      ([entry]) => {
+        setActive(entry.isIntersecting);
+        if (entry.isIntersecting) setHasBeenVisible(true);
+      },
       { rootMargin: "20% 0px 20% 0px" },
     );
     observer.observe(section);
@@ -78,9 +82,13 @@ export function Problem() {
       }}
       aria-label="The Problem"
     >
-      {/* Interactive 3D ball field - fills the section behind the text */}
+      {/* Interactive 3D ball field - fills the section behind the text.
+          Deferred until scroll-into-view so the Three.js/Rapier bundle
+          doesn't load (and block the main thread) on initial page load. */}
       <div className="absolute inset-0" aria-hidden>
-        <BallPit pointerRef={pointerRef} active={active} reduced={reduced} />
+        {hasBeenVisible && (
+          <BallPit pointerRef={pointerRef} active={active} reduced={reduced} />
+        )}
       </div>
 
       {/* Text overlay - centred above the ball field */}
